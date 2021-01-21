@@ -64,7 +64,7 @@ class Optimizer:
             print(f"{c}: {q:.2f}")
 
         # outputs created
-        print("\nOutput Components")
+        print("\nProduced Components:")
         for c in components:
             q = 0
             for recipe in self.recipes:
