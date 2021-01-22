@@ -1,12 +1,40 @@
-# Satisfactory Optimization
+# Satisfactory Optimizer
 This project uses Google's [OR-Tools](https://developers.google.com/optimization) to find optimal production ratios 
 in [Satisfactory](http://www.satisfactorygame.com).
 
-Data taken from https://raw.githubusercontent.com/greeny/SatisfactoryTools/dev/data/data.json
+Data taken from [SatisfactoryTools](https://github.com/greeny/SatisfactoryTools/tree/dev/data)
+
+## Satisfactory
+Satisfactory is a game of automation.
+You start by building machines to extract raw resources, then you combine resources and items into increasingly complex products.
+A Miner produces Iron Ore, and then a Smelter turns Iron Ore into Iron Ingots etc.
+
+![screenshot](assets/screenshot.jpeg)
+[source](https://www.satisfactorygame.com)
 
 ## Recipes
-Satisfactory is a game of building advanced components from simple building blocks.
-For example, Iron Ore becomes Iron Ingots, and Iron Ingots become Iron Plates. 
+Each construction machine takes input items and creates new items based on a specified recipe.
+For example, the default Iron Ingot recipe turns 30 Iron Ore into 30 Iron Ingots every minute.  
+
+More advanced items can have up to four input items, and each recipe has unique input/output ratios, speeds, and by-products to consider.
+Here's a chart showing the steps to build a late-game item.  
+
+![picture](assets/flowchart.png)
+[source](https://www.reddit.com/r/SatisfactoryGame/comments/b7zv8h/satisfactory_production_flowchart_with_alternate/)
+
+Quite a lot to remember when building a factory!  
+
+## Alternate Recipes
+To add even more complexity, many items have alternate recipes that may boost production depending on which starting resources are more plentiful.
+For example, there are three Iron Ingot recipes:  
+- Iron Ingot: 30 Iron Ore to 30 Iron Ingots  
+- Pure Iron Ingot: 35 Iron Ore and 20 Water to 65 Iron Ingots  
+- Iron Alloy Ingot: 20 Iron Ore and 20 Copper Ore to 50 Iron Ingots  
+
+Which recipe is the best? It depends on which resources are nearby.
+If you have excess water/copper and a shortage of iron, then the alternates will help.  
+
+This Satisfactory Optimizer takes all alternate recipes into account and gives an optimal factory setup based on your available materials.
 
 ## Usage
 Load recipes from the data file. For simplicity this example only uses default recipes. 
@@ -35,6 +63,11 @@ optimizer = Optimizer(default_recipes, inputs, outputs)
 optimizer.optimize()
 ```
 
+Then run
+```
+python satisfactory.py
+```
+
 Output:
 ```
 Solution:
@@ -59,24 +92,35 @@ Reinforced Iron Plate: 5.00
 
 ## Linear Optimization
 I modelled the recipe production ratios as a [linear programming](https://www.analyticsvidhya.com/blog/2017/02/lintroductory-guide-on-linear-programming-explained-in-simple-english/) problem.  
-Linear programming allows us to optimize a linear objective function within a set of constraints.  
-The objective function and constraints must be expressed as a set of equations using decision variables.  
-The linear programming problem can return decimal values, which works fine for Satisfactory and takes much less time to solve.
-
-### Objective Function
-An _objective function_ is a linear equation that the minimizer attempts to maximize (or minimize).  
-The optimizer takes a score for every desired product and attempts to maximize its score.
+A linear programming problem consists of _decision variables_, _constraints_, and an _objective function_.  
+The optimizer modifies the decision variables to maximize the objective function while satisfying its constraints.
 
 ### Decision Variables
-The optimizer modifies _decision variables_ in order to maximize its objective function.  
-In this case, the decision variables are the number of machines producing each recipe.
+We need to know how many machines should produce each recipe.
+Therefore, the recipe assignments are the decision variables.  
 
-x<sub>r</sub> = # of instances of recipe _r_
+x<sub>r</sub> = # of machines producing recipe _r_
+
+x<sub>r</sub> is a non-negative real number.
+
+### Objective Function
+We want to create as many desirable products as possible, so the objective function is the score of each component multiplied by the total produced.
+In order to eliminate extraneous recipes that don't contribute to the final score, each recipe incurs a small penalty.  
+
+![objective](assets/objective.jpg)
+
+where s<sub>c</sub> is the score for component _c_, n<sub>cr</sub> is the quantity of _c_ produced by a single machine with recipe _r_, and _p_ is a small, positive penalty.  
+n<sub>cr</sub> will be negative if _r_ consumes _c_ as an input.
+
 ### Constraints
-_Constraints_ are conditions that restrict the final output.
-For this problem, the only constraint is that each component has a non-negative quantity, otherwise the optimizer could use recipes without having prerequisite materials. 
+For this problem, the only constraint is that each component has a non-negative quantity, otherwise the optimizer could use recipes without having prerequisite materials.   
 
-n<sub>cr</sub> = number of component _c_ produced by recipe _r_, will be negative if _c_ is an input to _r_
+For each component _c_,  
 
-For each _c_,  
-n<sub>c1</sub>x<sub>1</sub> + n<sub>c2</sub>x<sub>2</sub> + ... + n<sub>cr</sub>x<sub>r</sub> >= 0
+![constraint](assets/constraint.jpg)
+
+where input<sub>c</sub> is the specified input amount for component _c_.
+
+## Potential Improvements
+- Warnings when input/output components are misspelled
+- Include energy costs in objective function
