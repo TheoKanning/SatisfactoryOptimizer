@@ -32,11 +32,17 @@ For example, there are three Iron Ingot recipes:
 - Iron Alloy Ingot: 20 Iron Ore and 20 Copper Ore to 50 Iron Ingots  
 
 Which recipe is the best? It depends on which resources are nearby.
-If you have excess water/copper and a shortage of iron, then the alternates will help.  
+If you have excess water/copper, and a shortage of iron, then the alternates will help.  
 
 This Satisfactory Optimizer takes all alternate recipes into account and gives an optimal factory setup based on your available materials.
 
+## Dependencies
+Install OR-tools with Pipenv  
+`pipenv install`
+
 ## Usage
+Example resource calculation in`satisfactory.py`
+
 Load recipes from the data file. For simplicity this example only uses default recipes. 
 ```
 recipes = load_recipes()
@@ -65,7 +71,7 @@ optimizer.optimize()
 
 Then run
 ```
-python satisfactory.py
+pipenv run python satisfactory.py
 ```
 
 Output:
