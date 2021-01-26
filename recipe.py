@@ -4,7 +4,7 @@ Class to hold the inputs, outputs, etc for a single recipe
 
 
 class Recipe:
-    def __init__(self, name, building, alternate=False):
+    def __init__(self, name: str, building: str, alternate=False):
         self.name = name
         self.building = building
         self.inputs = {}
@@ -20,7 +20,7 @@ class Recipe:
     def components_used(self):
         return set(self.inputs.keys()).union(set(self.outputs.keys()))
 
-    def component_net_quantity(self, component):
+    def component_net_quantity(self, component: str):
         net = 0
 
         if component in self.inputs:

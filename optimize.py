@@ -1,4 +1,7 @@
 from ortools.linear_solver import pywraplp
+from typing import List, Dict
+
+from recipe import Recipe
 
 """
 Class that finds a product setup to maximize desired output components given input constraints
@@ -6,7 +9,7 @@ Class that finds a product setup to maximize desired output components given inp
 
 
 class Optimizer:
-    def __init__(self, recipes, inputs, outputs):
+    def __init__(self, recipes: List[Recipe], inputs: Dict[str, int], outputs: Dict[str, float]):
         """
         :param recipes: List of available recipes
         :param inputs: dict of available input components and rates in x/min, {"Iron Ore": 30}
