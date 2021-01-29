@@ -4,6 +4,7 @@ in [Satisfactory](http://www.satisfactorygame.com).
 
 Data taken from [SatisfactoryTools](https://github.com/greeny/SatisfactoryTools/tree/dev/data)
 
+Full writeup at https://theokanning.com/satisfactory-optimizer/
 ## Satisfactory
 Satisfactory is a game of automation.
 You start by building machines to extract raw resources, then you combine resources and items into increasingly complex products.
@@ -41,7 +42,7 @@ Install OR-tools with Pipenv
 `pipenv install`
 
 ## Usage
-Example resource calculation in`satisfactory.py`
+Example resource calculation in `satisfactory.py`
 
 Load recipes from the data file. For simplicity this example only uses default recipes. 
 ```
@@ -115,7 +116,10 @@ In order to eliminate extraneous recipes that don't contribute to the final scor
 
 ![objective](assets/objective.jpg)
 
-where s<sub>c</sub> is the score for component _c_, n<sub>cr</sub> is the quantity of _c_ produced by a single machine with recipe _r_, and _p_ is a small, positive penalty.  
+where s<sub>c</sub> is the score for component _c_,  
+n<sub>cr</sub> is the quantity of _c_ produced by a single machine with recipe _r_,  
+and _p_ is a small, positive penalty.  
+
 n<sub>cr</sub> will be negative if _r_ consumes _c_ as an input.
 
 ### Constraints
