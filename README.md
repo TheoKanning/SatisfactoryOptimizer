@@ -57,7 +57,7 @@ inputs = {
 }
 ```
 
-Give a positive score to components you want to create.
+Give a positive score to products you want to create.
 ```
 outputs = {
     "Reinforced Iron Plate": 1
@@ -90,12 +90,12 @@ Screw: 1.50
 Inputs Remaining:
 Iron Ore: 0.00
 
-Produced Components:
+Produced:
 Reinforced Iron Plate: 5.00
 ```
 `Recipes Used` shows how many machines need to run each recipe.  
 `Inputs Remaining` shows which resources run out first and limit production.  
-`Produced Components` shows all the produced components, not just those with a score.
+`Produced` shows all the produced components, not just those with a score.
 
 ## Linear Optimization
 I modelled the recipe production ratios as a [linear programming](https://www.analyticsvidhya.com/blog/2017/02/lintroductory-guide-on-linear-programming-explained-in-simple-english/) problem.  
@@ -132,5 +132,4 @@ For each component _c_,
 where input<sub>c</sub> is the specified input amount for component _c_.
 
 ## Potential Improvements
-- Warnings when input/output components are misspelled
 - Include energy costs in objective function

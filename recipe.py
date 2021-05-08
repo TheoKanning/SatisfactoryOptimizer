@@ -1,9 +1,7 @@
-"""
-Class to hold the inputs, outputs, etc for a single recipe
-"""
-
 
 class Recipe:
+    """ Represents the inputs, outputs, etc for a single recipe """
+
     def __init__(self, name: str, building: str, alternate=False):
         self.name = name
         self.building = building
@@ -17,16 +15,16 @@ class Recipe:
     def add_output(self, name: str, quantity: float):
         self.outputs[name] = quantity
 
-    def components_used(self):
+    def products_used(self):
         return set(self.inputs.keys()).union(set(self.outputs.keys()))
 
-    def component_net_quantity(self, component: str):
+    def product_net_quantity(self, product: str):
         net = 0
 
-        if component in self.inputs:
-            net -= self.inputs[component]
-        if component in self.outputs:
-            net += self.outputs[component]
+        if product in self.inputs:
+            net -= self.inputs[product]
+        if product in self.outputs:
+            net += self.outputs[product]
 
         return net
 
