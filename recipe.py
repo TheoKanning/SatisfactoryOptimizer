@@ -1,37 +1,82 @@
+from ortools.linear_solver import pywraplp
+from typing import List, Dict
 
-class Recipe:
-    """ Represents the inputs, outputs, etc for a single recipe """
+from common import Recipe
 
-    def __init__(self, name: str, building: str, alternate=False):
-        self.name = name
-        self.building = building
-        self.inputs = {}
-        self.outputs = {}
-        self.alternate = alternate
 
-    def add_input(self, name: str, quantity: float):
-        self.inputs[name] = quantity
+def optimize_recipes(recipes: List[Recipe], inputs: Dict[str, int], outputs: Dict[str, float]):
+    """
+    Finds recipe ratios to maximize desired output products given input resource constraints
+    :param recipes: List of available recipes
+    :param inputs: dict of available input products and rates in x/min, {"Iron Ore": 30}
+    :param outputs: dict of desired outputs and scores {"Fuel": 600, "Turbofuel": 2000}
+                    all other products will have a score of 0
+    """
+    validate_products(list(inputs.keys()), recipes)
+    validate_products(list(outputs.keys()), recipes)
+    recipe_max = 100
+    product_max = 10000
+    recipe_cost = 0.01  # small cost to encourage fewer recipes overall
 
-    def add_output(self, name: str, quantity: float):
-        self.outputs[name] = quantity
+    products = list(set([c for recipe in recipes for c in recipe.products_used()]))
+    products.sort()
 
-    def products_used(self):
-        return set(self.inputs.keys()).union(set(self.outputs.keys()))
+    solver = pywraplp.Solver.CreateSolver('GLOP')
+    recipe_vars = dict([(r.name, solver.NumVar(0, recipe_max, r.name)) for r in recipes])
 
-    def product_net_quantity(self, product: str):
-        net = 0
+    # for each product, add a constraint that the total amount is at least zero
+    for product in products:
+        min_value = -inputs[product] if product in inputs else 0
+        ct = solver.Constraint(min_value, product_max, product)
 
-        if product in self.inputs:
-            net -= self.inputs[product]
-        if product in self.outputs:
-            net += self.outputs[product]
+        # add the contribution of each recipe
+        for recipe in recipes:
+            ct.SetCoefficient(recipe_vars[recipe.name], recipe.product_net_quantity(product))
 
-        return net
+    # the objective function is the total score of all outputs created by each recipe
+    objective = solver.Objective()
+    for recipe in recipes:
+        recipe_contribution = sum([recipe.product_net_quantity(c) * s for c, s in outputs.items()])
+        recipe_contribution -= recipe_cost
+        objective.SetCoefficient(recipe_vars[recipe.name], recipe_contribution)
 
-    def description(self):
-        input_str = '\n\t'.join([f"{q} {i}" for i, q, in self.inputs.items()])
-        output_str = '\n\t'.join([f"{q} {i}" for i, q, in self.outputs.items()])
-        return f"{self.name}\nProduced in: {self.building}\nInputs:\n\t{input_str}\nOutputs:\n\t{output_str}"
+    objective.SetMaximization()
 
-    def __str__(self):
-        return self.name
+    solver.Solve()
+
+    print('Solution:')
+    print(f"Objective value: {objective.Value():.2f}")
+
+    print("\nRecipes Used:")
+    for recipe in recipes:
+        var = recipe_vars[recipe.name]
+        if var.solution_value():
+            print(f"{recipe.name}: {var.solution_value():.2f}")
+
+    print("\nInputs Remaining:")
+    for p, q in inputs.items():
+        for recipe in recipes:
+            q += recipe.product_net_quantity(p) * recipe_vars[recipe.name].solution_value()
+
+        print(f"{p}: {q:.2f}")
+
+    print("\nProduced:")
+    for p in products:
+        q = 0
+        for recipe in recipes:
+            q += recipe.product_net_quantity(p) * recipe_vars[recipe.name].solution_value()
+
+        if q > 0.01:
+            print(f"{p}: {q:.2f}")
+
+
+def validate_products(products: List[str], recipes: List[Recipe]):
+    unknown_products = []
+    all_products = list(set([c for recipe in recipes for c in recipe.products_used()]))
+
+    for product in products:
+        if product not in all_products:
+            unknown_products.append(product)
+
+    for product in unknown_products:
+        print(f"Could not find product \"{product}\"")

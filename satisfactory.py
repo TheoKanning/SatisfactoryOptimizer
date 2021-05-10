@@ -1,5 +1,5 @@
 from data import load_recipes
-from optimize import Optimizer
+from recipe import optimize_recipes
 
 recipes = load_recipes()
 default_recipes = [r for r in recipes if not r.alternate]
@@ -15,5 +15,5 @@ outputs = {
     "Turbofuel": 2000
 }
 
-optimizer = Optimizer(recipes, inputs, outputs)
-optimizer.optimize()
+optimize_recipes(recipes, inputs, outputs)
+

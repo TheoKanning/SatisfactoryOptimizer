@@ -1,6 +1,6 @@
 import json
 
-from recipe import Recipe
+from common import Recipe
 
 
 def load_recipes():
