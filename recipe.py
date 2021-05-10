@@ -3,6 +3,10 @@ from typing import List, Dict
 
 from common import Recipe
 
+RECIPE_MAX = 100  # maximum allowable amount of any single recipe
+PRODUCT_MAX = 10000  # maximum allowable amount of any single product
+RECIPE_COST = 0.01  # small cost to discourage extraneous recipes
+
 
 def optimize_recipes(recipes: List[Recipe], inputs: Dict[str, int], outputs: Dict[str, float]):
     """
@@ -14,20 +18,17 @@ def optimize_recipes(recipes: List[Recipe], inputs: Dict[str, int], outputs: Dic
     """
     validate_products(list(inputs.keys()), recipes)
     validate_products(list(outputs.keys()), recipes)
-    recipe_max = 100
-    product_max = 10000
-    recipe_cost = 0.01  # small cost to encourage fewer recipes overall
 
     products = list(set([c for recipe in recipes for c in recipe.products_used()]))
     products.sort()
 
     solver = pywraplp.Solver.CreateSolver('GLOP')
-    recipe_vars = dict([(r.name, solver.NumVar(0, recipe_max, r.name)) for r in recipes])
+    recipe_vars = dict([(r.name, solver.NumVar(0, RECIPE_MAX, r.name)) for r in recipes])
 
     # for each product, add a constraint that the total amount is at least zero
     for product in products:
         min_value = -inputs[product] if product in inputs else 0
-        ct = solver.Constraint(min_value, product_max, product)
+        ct = solver.Constraint(min_value, PRODUCT_MAX, product)
 
         # add the contribution of each recipe
         for recipe in recipes:
@@ -37,7 +38,7 @@ def optimize_recipes(recipes: List[Recipe], inputs: Dict[str, int], outputs: Dic
     objective = solver.Objective()
     for recipe in recipes:
         recipe_contribution = sum([recipe.product_net_quantity(c) * s for c, s in outputs.items()])
-        recipe_contribution -= recipe_cost
+        recipe_contribution -= RECIPE_COST
         objective.SetCoefficient(recipe_vars[recipe.name], recipe_contribution)
 
     objective.SetMaximization()
